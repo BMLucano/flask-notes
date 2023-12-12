@@ -43,7 +43,9 @@ def register_form():
         db.session.add(user)
         db.session.commit()
 
-        return redirect("/users/<username>")
+        session['username'] = user.username
+
+        return redirect(f"/users/{user.username}")
 
     return render_template("register.html", form=form)
 
@@ -64,7 +66,7 @@ def login_form():
 
         if user:
             session["username"] = user.username
-            return redirect("/users/<username>")
+            return redirect(f"/users/{user.username}")
 
         else:
             form.username.errors = ["Bad name/password"]
@@ -72,4 +74,16 @@ def login_form():
 
     return render_template("login.html", form=form)
 
+
+@app.get("/users/<username>")
+def show_user(username):
+    """Show info about a logged in user"""
+
+    if "username" not in session:
+        flash("Unauthorized access!")
+        return redirect("/login")
+
+    user = User.query.get_or_404(username)
+
+    return render_template("user_info.html", user=user)
 

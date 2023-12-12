@@ -14,10 +14,10 @@ class RegisterForm(FlaskForm):
         "Password",
         validators=[InputRequired()]
     )
-
+    #import email_validator???
     email = StringField(
         "Email",
-        validators=[InputRequired(), Email(), Length(max=50)]
+        validators=[InputRequired(), Length(max=50)]
     )
 
     first_name= StringField(
