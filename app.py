@@ -2,6 +2,7 @@ import os
 
 from flask import Flask, render_template, redirect, session, flash
 from flask_debugtoolbar import DebugToolbarExtension
+from werkzeug.exceptions import Unauthorized
 
 from models import connect_db, db, User
 from forms import RegisterForm, LoginForm, CSRFProtectForm
@@ -12,6 +13,8 @@ app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get(
 app.config["SQLALCHEMY_ECHO"] = True
 app.config["SECRET_KEY"] = "abc123"
 
+AUTH_KEY = 'username'
+
 connect_db(app)
 db.create_all()
 
@@ -21,9 +24,6 @@ toolbar = DebugToolbarExtension(app)
 def homepage():
     """ Shows homepage """
 
-    # if "username" in session:
-    #     return redirect(f"/users/{session['username']}")
-
     return redirect("/register")
 
 @app.route("/register", methods=['GET', 'POST'])
@@ -32,6 +32,9 @@ def register_form():
     Shows form, when submitted will register/create a user
     Form accepts a username, password, email, first_name, and last_name
     """
+    if "username" in session:
+        return redirect(f"/users/{session[AUTH_KEY]}")
+
     form = RegisterForm()
 
     if form.validate_on_submit():
@@ -42,10 +45,11 @@ def register_form():
         last_name = form.last_name.data
 
         user = User.register(username, password, email, first_name, last_name)
+        #can add user in register function but always commit in route
         db.session.add(user)
         db.session.commit()
 
-        session['username'] = user.username
+        session[AUTH_KEY] = user.username
 
         return redirect(f"/users/{user.username}")
 
@@ -57,6 +61,8 @@ def login_form():
     Shows a login form that when submitted will login a user
     This form accepts a username and a password
     """
+    if "username" in session:
+        return redirect(f"/users/{session[AUTH_KEY]}")
 
     form = LoginForm()
 
@@ -67,7 +73,7 @@ def login_form():
         user = User.authenticate(username, password)
 
         if user:
-            session["username"] = user.username
+            session[AUTH_KEY] = user.username
             return redirect(f"/users/{user.username}")
 
         else:
@@ -81,13 +87,14 @@ def login_form():
 def show_user(username):
     """Show info about a logged in user"""
 
-    if "username" not in session:
+    if "username" not in session or username != session[AUTH_KEY]:
         flash("Unauthorized access!")
         return redirect("/login")
 
     user = User.query.get_or_404(username)
+    form = CSRFProtectForm()
 
-    return render_template("user_info.html", user=user)
+    return render_template("user_info.html", user=user, form=form)
 
 @app.post("/logout")
 def logout():
@@ -96,7 +103,8 @@ def logout():
     form = CSRFProtectForm()
 
     if form.validate_on_submit():
-        session.pop("username", None)
-
-    return redirect("/")
+        session.pop(AUTH_KEY, None)
+        return redirect("/")
+    else:
+        raise Unauthorized()
 
