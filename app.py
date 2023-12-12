@@ -4,8 +4,7 @@ from flask import Flask, render_template, redirect, session, flash
 from flask_debugtoolbar import DebugToolbarExtension
 
 from models import connect_db, db, User
-from forms import RegisterForm, LoginForm
-# , LoginForm, CSRFProtectForm
+from forms import RegisterForm, LoginForm, CSRFProtectForm
 
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get(
@@ -21,6 +20,9 @@ toolbar = DebugToolbarExtension(app)
 @app.get("/")
 def homepage():
     """ Shows homepage """
+
+    # if "username" in session:
+    #     return redirect(f"/users/{session['username']}")
 
     return redirect("/register")
 
@@ -86,4 +88,15 @@ def show_user(username):
     user = User.query.get_or_404(username)
 
     return render_template("user_info.html", user=user)
+
+@app.post("/logout")
+def logout():
+    """Logs user out and redirects to homepage"""
+
+    form = CSRFProtectForm()
+
+    if form.validate_on_submit():
+        session.pop("username", None)
+
+    return redirect("/")
 
