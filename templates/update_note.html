@@ -2,7 +2,7 @@
 
 {% block content %}
 
-<form action="/users/{{ user.username }}/notes/add" method="POST">
+<form action="/notes/{{ note.id }}/update" method="POST">
   {{ form.hidden_tag() }}
 
   {% for field in form

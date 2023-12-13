@@ -101,4 +101,3 @@ class Note(db.Model):
 
 
 
-

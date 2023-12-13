@@ -147,11 +147,33 @@ def add_note(username):
 
         new_note = Note(title=title,
                         content=content,
-                        username=username)
+                        owner_username=username)
         db.session.add(new_note)
         db.session.commit()
 
         return redirect(f"/users/{username}")
 
     return render_template("create_note.html", form=form, user=user)
+
+@app.route("/notes/<id>/update", methods=['GET', 'POST'])
+def update_note(id):
+    """Display form to update note. Edits note in DB
+    redirects to user's page"""
+
+    note = Note.query.get(id)
+
+    form = NoteForm(obj=note)
+
+    if form.validate_on_submit():
+        note.title = form.title.data
+        note.content = form.content.data
+
+        db.session.commit()
+        return redirect(f"/users/{note.owner_username}")
+
+    return render_template("update_note.html", form=form, note=note)
+
+
+
+
 

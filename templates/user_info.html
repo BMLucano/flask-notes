@@ -27,7 +27,7 @@
   <button type="submit">Logout</button>
 </form>
 
-<form action="/notes/{{ note.id }}/delete" method="POST">
+<form action="/users/{{ user.username }}/delete" method="POST">
   {{ form.hidden_tag() }}
   <button type="submit">Delete User</button>
 </form>
