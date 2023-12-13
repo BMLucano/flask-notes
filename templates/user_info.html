@@ -11,20 +11,26 @@
   {% for note in notes %}
   <li>{{ note.content }}</li>
   <form>
-    <button formmethod="GET", formaction="/notes/<id>/update">Edit Note</button>
-    <button formmethod="POST", formaction="/notes/<id>/delete">Delete</button>
+    <button formmethod="GET", formaction="/notes/{{ note.id }}/update">Edit Note</button>
+    <button formmethod="POST", formaction="/notes/{{ note.id }}/delete">Delete</button>
   </form>
 
   {% endfor %}
 </ul>
 
 <form>
-  <button formmethod="GET", formaction="/users/<username>/notes/add"></button>
+  <button formmethod="GET", formaction="/users/{{ user.username }}/notes/add">Add Note</button>
 </form>
 
 <form action="/logout" method="POST">
   {{ form.hidden_tag() }}
   <button type="submit">Logout</button>
 </form>
+
+<form action="/notes/{{ note.id }}/delete" method="POST">
+  {{ form.hidden_tag() }}
+  <button type="submit">Delete User</button>
+</form>
+
 
 {% endblock %}
