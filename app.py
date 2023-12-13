@@ -106,8 +106,8 @@ def delete_user(username):
 
     if form.validate_on_submit():
         user = User.query.get(username)
-        notes = Note.query.get(user.notes).all()
-        db.session.delete(notes)
+        Note.query.filter_by(owner_username=username).delete()
+        # db.session.delete(notes)
         db.session.delete(user)
         db.session.commit()
 
@@ -126,6 +126,7 @@ def show_user(username):
         flash("Unauthorized access!")
         return redirect("/login")
 
+    #use relationship
     user = User.query.get_or_404(username)
     user_notes = Note.query.filter_by(owner_username=username).all()
     print("###################user notes=", user_notes)
@@ -137,6 +138,9 @@ def show_user(username):
 @app.route("/users/<username>/notes/add", methods=['GET', 'POST'])
 def add_note(username):
     """Display form to add notes. Add note to DB and redirect"""
+
+    if "username" not in session or username != session[AUTH_KEY]:
+        raise Unauthorized()
 
     form = NoteForm()
     user = User.query.get(username)
@@ -155,12 +159,15 @@ def add_note(username):
 
     return render_template("create_note.html", form=form, user=user)
 
-@app.route("/notes/<id>/update", methods=['GET', 'POST'])
+@app.route("/notes/<int:id>/update", methods=['GET', 'POST'])
 def update_note(id):
     """Display form to update note. Edits note in DB
     redirects to user's page"""
 
     note = Note.query.get(id)
+
+    if "username" not in session or note.username != session[AUTH_KEY]:
+        raise Unauthorized()
 
     form = NoteForm(obj=note)
 
@@ -172,6 +179,22 @@ def update_note(id):
         return redirect(f"/users/{note.owner_username}")
 
     return render_template("update_note.html", form=form, note=note)
+
+@app.post("/notes/<int:id>/delete")
+def delete_note(id):
+    """Delete a note and redirect to user page"""
+
+    #add csrf protection
+    note = Note.query.get_or_404(id)
+
+    if "username" not in session or note.username != session[AUTH_KEY]:
+        raise Unauthorized()
+
+    db.session.delete(note)
+    db.session.commit()
+
+    return redirect(f"/users/{note.owner_username}")
+
 
 
 
