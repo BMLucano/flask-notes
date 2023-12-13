@@ -4,7 +4,7 @@ from flask import Flask, render_template, redirect, session, flash
 from flask_debugtoolbar import DebugToolbarExtension
 from werkzeug.exceptions import Unauthorized
 
-from models import connect_db, db, User
+from models import connect_db, db, User, Note
 from forms import RegisterForm, LoginForm, CSRFProtectForm
 
 app = Flask(__name__)
@@ -92,9 +92,10 @@ def show_user(username):
         return redirect("/login")
 
     user = User.query.get_or_404(username)
+    notes = Note.query.get(user.notes).all()
     form = CSRFProtectForm()
 
-    return render_template("user_info.html", user=user, form=form)
+    return render_template("user_info.html", user=user, form=form, notes=notes)
 
 @app.post("/logout")
 def logout():

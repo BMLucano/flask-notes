@@ -6,10 +6,25 @@
 
 <h2>Notes</h2>
 
-<form action="/logout" method="POST" >
+<!-- show all of the user notes here -->
+<ul>
+  {% for note in notes %}
+  <li>{{ note.content }}</li>
+  <form>
+    <button formmethod="GET", formaction="/notes/<id>/update">Edit Note</button>
+    <button formmethod="POST", formaction="/notes/<id>/delete">Delete</button>
+  </form>
+
+  {% endfor %}
+</ul>
+
+<form>
+  <button formmethod="GET", formaction="/users/<username>/notes/add"></button>
+</form>
+
+<form action="/logout" method="POST">
   {{ form.hidden_tag() }}
-<button type="submit">Logout</button>
+  <button type="submit">Logout</button>
 </form>
 
 {% endblock %}
-
